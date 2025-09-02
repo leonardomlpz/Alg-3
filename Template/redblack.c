@@ -35,4 +35,13 @@ void imprimirDadosAluno(){
     return;
 }
 
+void rotacaoEsquerda(struct nodo *T, struct nodo *x){
+    if (!T || !x)
+        return NULL;
+
+    struct nodo *y;
+    y = x->fd;
+    x->fd = y->fe;
+    if (y->fe != SENTINELA)
+}
 //IMPLEMENTE AS DEMAIS FUNÇÕES AQUI

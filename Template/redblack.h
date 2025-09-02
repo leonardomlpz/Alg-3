@@ -3,7 +3,10 @@
 
 struct nodo {
     int chave;
-    ???
+    char cor;// 1 = vermelho, 0 = preto
+    struct nodo *fe;
+    struct nodo *fd;
+    struct nodo *pai;
 };
 
 struct aluno{
