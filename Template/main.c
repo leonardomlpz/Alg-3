@@ -5,8 +5,11 @@
 
 int main(){
 	//ATENÇÃO, ESSE É APENAS UM EXEMPLO DE IMPLEMENTAÇÃO DO MAIN.
-	//MODIFIQUE DE ACORDO COM SUAS NECESSIDADES E DE ACORDO COM AS ESPECIFICAÇÕES.
-	struct nodo* raiz = ???;
+	//MODIFIQUE DE ACORDO COM SUAS NECESSIDADES E DE ACORDO COM AS ESPECIFICAÇÕES.	
+	extern struct nodo *SENTINELA;
+	void inicializarSentinela();
+
+	struct nodo* raiz = SENTINELA;
 	
 	imprimirDadosAluno();
 

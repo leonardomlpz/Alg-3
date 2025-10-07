@@ -2,6 +2,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+
+#define VERMELHO 1
+#define PRETO 0
 
 struct aluno* getAluno(){
     struct aluno* retorno = malloc(sizeof(struct aluno));
@@ -35,13 +39,43 @@ void imprimirDadosAluno(){
     return;
 }
 
-void rotacaoEsquerda(struct nodo *T, struct nodo *x){
+struct nodo *SENTINELA = NULL;
+
+void inicializarSentinela(){
+    SENTINELA = malloc(sizeof(struct nodo));
+    if (!SENTINELA){
+        fprintf(stderr, "Falha ao alocar memoria.\n");
+        exit(1);
+    }
+    SENTINELA->cor = PRETO;
+    SENTINELA->pai = SENTINELA;
+    SENTINELA->fe = SENTINELA;
+    SENTINELA->fd = SENTINELA;
+}
+
+void rotacaoEsquerda(struct nodo **T, struct nodo *x){
     if (!T || !x)
         return NULL;
+    // Rotacao nao eh possivel
+    if (x->fd == SENTINELA)
+        return;
 
     struct nodo *y;
     y = x->fd;
     x->fd = y->fe;
+
     if (y->fe != SENTINELA)
+        y->fe->pai = x;
+
+    y->pai = x->pai;
+    if (x->pai == SENTINELA)
+        *T = y;
+    else if (x == x->pai->fe)
+        x->pai->fe = y;
+    else
+        x->pai->fd = y;
+
+    y->fe = x;
+    x->pai = y;
 }
 //IMPLEMENTE AS DEMAIS FUNÇÕES AQUI
