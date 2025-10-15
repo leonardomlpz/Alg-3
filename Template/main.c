@@ -3,14 +3,18 @@
 
 #include "redblack.h"
 
+extern struct nodo *SENTINELA;
+void inicializarSentinela();
+
+void liberarArvore(struct nodo* nodo);
+
 int main(){
 	//ATENÇÃO, ESSE É APENAS UM EXEMPLO DE IMPLEMENTAÇÃO DO MAIN.
 	//MODIFIQUE DE ACORDO COM SUAS NECESSIDADES E DE ACORDO COM AS ESPECIFICAÇÕES.	
-	extern struct nodo *SENTINELA;
-	void inicializarSentinela();
-
+	inicializarSentinela();
 	struct nodo* raiz = SENTINELA;
 	
+
 	imprimirDadosAluno();
 
 	char op;
@@ -30,15 +34,15 @@ int main(){
 				break;
 			case 'e':
 				imprimirEmOrdem(raiz);
-				puts("\n");
+				printf("\n");
 				break;
 			case 'l':
-				imprimirEmLargura(raiz, true);
+				imprimirEmLargura(raiz);
 				break;
 			case 'b':
 			 	scanf("%d", &val);
 				struct nodo* valB = buscar(raiz, val);
-				if(valB != &SENTINELA)
+				if(valB != SENTINELA)
 					printf("Encontrado %d\n", valB->chave);
 				else
 					printf("Nao encontrado %d.\n", val);
@@ -48,6 +52,9 @@ int main(){
 		}
 		scanf(" %c", &op);
 	}
+
+	liberarArvore(raiz);
+	free(SENTINELA);
 
 	return 0;
 }
