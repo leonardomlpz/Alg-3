@@ -24,7 +24,7 @@ int main(){
 		switch (op) {
 			case 'i':
 				scanf("%d", &val);
-				if(!inserir(&raiz, val))
+				if(inserir(&raiz, val) == SENTINELA)
 					fprintf(stderr,"Falha ao inserir.\n");
 				break;
 			case 'r':

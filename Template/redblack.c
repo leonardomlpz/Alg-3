@@ -21,12 +21,12 @@ struct aluno* getAluno(){
     retorno->nome = malloc(sizeof("Leonardo Martins Lopes"));//sizeof conta o \0
 	if(!retorno->nome)
 		matarProgramaFaltaMemoria();
-    retorno->nomeDinf = malloc(sizeof("NOME_NAS_SERVIDORAS_DINF"));
-    if(!retorno->nomeDinf)
+    retorno->nomeDinf = malloc(sizeof("lml24"));
+    if(!retorno->nomeDinf){
         matarProgramaFaltaMemoria();
-    
+    }
 	strcpy(retorno->nome, "Leonardo Martins Lopes");
-    strcpy(retorno->nomeDinf, "NOME_NAS_SERVIDORAS_DINF");
+    strcpy(retorno->nomeDinf, "lml24");
     retorno->grr = 20242343;
 
 	return retorno;
@@ -117,45 +117,45 @@ void rotacaoDireita(struct nodo **T, struct nodo *x){
 }
 
 void inserirFixup(struct nodo** T, struct nodo* z){
-    struct nodo* y; // 'y' será o tio de 'z'
+    struct nodo* y; // y será o tio de z
 
-    // A violação principal ocorre se o pai de 'z' também for vermelho.
+    // A violação principal ocorre se o pai de z também for vermelho.
     while (z->pai->cor == VERMELHO)
     {
-        // Caso A: O pai de 'z' é um FILHO ESQUERDO.
+        // Caso A: O pai de z é um FILHO ESQUERDO.
         if (z->pai == z->pai->pai->fe)
         {
-            y = z->pai->pai->fd; // 'y' é o tio de 'z'
+            y = z->pai->pai->fd; // y é o tio de z
 
-            // Caso 1: O tio de 'z' é vermelho.
+            // Caso 1: O tio de z é vermelho.
             if (y->cor == VERMELHO)
             {
                 z->pai->cor = PRETO;
                 y->cor = PRETO;
                 z->pai->pai->cor = VERMELHO;
-                z = z->pai->pai; // Move 'z' para o avô para continuar a verificação.
+                z = z->pai->pai; // Move z para o avô para continuar a verificação.
             }
             else 
             {
-                // Caso 2: O tio de 'z' é preto e 'z' é um filho direito.
+                // Caso 2: O tio de z é preto e z é um filho direito.
                 if (z == z->pai->fd)
                 {
                     z = z->pai;
                     rotacaoEsquerda(T, z);
                 }
 
-                // Caso 3: O tio de 'z' é preto e 'z' é um filho esquerdo.
+                // Caso 3: O tio de z é preto e z é um filho esquerdo.
                 z->pai->cor = PRETO;
                 z->pai->pai->cor = VERMELHO;
                 rotacaoDireita(T, z->pai->pai);
             }
         }
-        // Caso B: O pai de 'z' é um FILHO DIREITO (código espelhado do Caso A).
+        // Caso B: O pai de z é um FILHO DIREITO (código espelhado do Caso A).
         else
         {
-            y = z->pai->pai->fe; // 'y' é o tio de 'z'
+            y = z->pai->pai->fe; // y é o tio de z
 
-            // Caso 1 (espelhado): O tio de 'z' é vermelho.
+            // Caso 1 (espelhado): O tio de z é vermelho.
             if (y->cor == VERMELHO)
             {
                 z->pai->cor = PRETO;
@@ -165,14 +165,14 @@ void inserirFixup(struct nodo** T, struct nodo* z){
             }
             else
             {
-                // Caso 2 (espelhado): O tio de 'z' é preto e 'z' é um filho esquerdo.
+                // Caso 2 (espelhado): O tio de z é preto e z é um filho esquerdo.
                 if (z == z->pai->fe)
                 {
                     z = z->pai;
                     rotacaoDireita(T, z);
                 }
 
-                // Caso 3 (espelhado): O tio de 'z' é preto e 'z' é um filho direito.
+                // Caso 3 (espelhado): O tio de z é preto e z é um filho direito.
                 z->pai->cor = PRETO;
                 z->pai->pai->cor = VERMELHO;
                 rotacaoEsquerda(T, z->pai->pai);
@@ -205,8 +205,8 @@ struct nodo* inserir(struct nodo** T, int chave){
 
     // --- Parte 2: Encontrar a posição de inserção ---
     // Este laço é idêntico a uma inserção em árvore de busca binária.
-    struct nodo* y = SENTINELA; // 'y' será o pai do novo nodo.
-    struct nodo* x = *T;        // 'x' é usado para percorrer a árvore.
+    struct nodo* y = SENTINELA; // y será o pai do novo nodo.
+    struct nodo* x = *T;        // x é usado para percorrer a árvore.
 
     while (x != SENTINELA)
     {
@@ -223,28 +223,28 @@ struct nodo* inserir(struct nodo** T, int chave){
         else
         {
             // Ponto de atenção: chave duplicada encontrada, conforme seu trabalho.
-            free(z); // Libera a memória do nodo 'z' que não será inserido.
+            free(z); // Libera a memória do nodo z que não será inserido.
             return SENTINELA; // Retorna SENTINELA para indicar falha.
         }
     }
 
 
     // --- Parte 3: Ligar o novo nodo (z) na árvore ---
-    z->pai = y; // O pai de 'z' é o último nodo 'y' visitado.
+    z->pai = y; // O pai de z é o último nodo y visitado.
 
     if (y == SENTINELA)
     {
-        // Caso 1: A árvore estava vazia. 'z' se torna a raiz.
+        // Caso 1: A árvore estava vazia. z se torna a raiz.
         *T = z;
     }
     else if (z->chave < y->chave)
     {
-        // Caso 2: 'z' é menor que seu pai, torna-se filho esquerdo.
+        // Caso 2: z é menor que seu pai, torna-se filho esquerdo.
         y->fe = z;
     }
     else
     {
-        // Caso 3: 'z' é maior que seu pai, torna-se filho direito.
+        // Caso 3: z é maior que seu pai, torna-se filho direito.
         y->fd = z;
     }
     
@@ -280,41 +280,30 @@ struct nodo* minimo(struct nodo* nodo){
 }
 
 int excluir(struct nodo** T, int chave){
-    // Primeiro, precisamos encontrar o nodo 'z' a ser removido.
-    // (Esta função 'buscar' será uma das próximas a ser implementada)
     struct nodo* z = buscar(*T, chave);
 
     if (z == SENTINELA)
-    {
-        // A chave não está na árvore.
         return 0; 
-    }
 
     struct nodo *y = z;
     struct nodo *x;
     int corOriginalY = y->cor;
 
-    if (z->fe == SENTINELA)
-    {
+    if (z->fe == SENTINELA){
         x = z->fd;
         transplantar(T, z, z->fd);
     }
-    else if (z->fd == SENTINELA)
-    {
+    else if (z->fd == SENTINELA){
         x = z->fe;
         transplantar(T, z, z->fe);
     }
-    else
-    {
+    else{
         y = minimo(z->fd);
         corOriginalY = y->cor;
         x = y->fd;
         if (y->pai == z)
-        {
             x->pai = y;
-        }
-        else
-        {
+        else{
             transplantar(T, y, y->fd);
             y->fd = z->fd;
             y->fd->pai = y;
@@ -336,16 +325,16 @@ int excluir(struct nodo** T, int chave){
 }
 
 void excluirFixup(struct nodo** T, struct nodo* x){
-    struct nodo* w; // 'w' é o irmão de 'x'
+    struct nodo* w; // w é o irmão de x
 
     while (x != *T && x->cor == PRETO)
     {
-        // Caso A: 'x' é um FILHO ESQUERDO
+        // Caso A: x é um FILHO ESQUERDO
         if (x == x->pai->fe)
         {
             w = x->pai->fd;
 
-            // Caso 1: O irmão de 'x' ('w') é vermelho.
+            // Caso 1: O irmão de x (w) é vermelho.
             if (w->cor == VERMELHO)
             {
                 w->cor = PRETO;
@@ -354,7 +343,7 @@ void excluirFixup(struct nodo** T, struct nodo* x){
                 w = x->pai->fd;
             }
 
-            // Caso 2: O irmão de 'x' ('w') é preto, e ambos os filhos de 'w' são pretos.
+            // Caso 2: O irmão de x (w) é preto, e ambos os filhos de w são pretos.
             if (w->fe->cor == PRETO && w->fd->cor == PRETO)
             {
                 w->cor = VERMELHO;
@@ -362,8 +351,8 @@ void excluirFixup(struct nodo** T, struct nodo* x){
             }
             else
             {
-                // Caso 3: O irmão de 'x' ('w') é preto, o filho esquerdo de 'w' é vermelho
-                // e o filho direito de 'w' é preto.
+                // Caso 3: O irmão de x (w) é preto, o filho esquerdo de w é vermelho
+                // e o filho direito de w é preto.
                 if (w->fd->cor == PRETO)
                 {
                     w->fe->cor = PRETO;
@@ -372,7 +361,7 @@ void excluirFixup(struct nodo** T, struct nodo* x){
                     w = x->pai->fd;
                 }
 
-                // Caso 4: O irmão de 'x' ('w') é preto, e o filho direito de 'w' é vermelho.
+                // Caso 4: O irmão de x (w) é preto, e o filho direito de w é vermelho.
                 w->cor = x->pai->cor;
                 x->pai->cor = PRETO;
                 w->fd->cor = PRETO;
@@ -380,7 +369,7 @@ void excluirFixup(struct nodo** T, struct nodo* x){
                 x = *T; // Termina o laço
             }
         }
-        // Caso B: 'x' é um FILHO DIREITO (código espelhado)
+        // Caso B: x é um FILHO DIREITO (código espelhado)
         else
         {
             w = x->pai->fe;
