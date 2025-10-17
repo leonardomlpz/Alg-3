@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/queue.h>
 
 #define VERMELHO 1
 #define PRETO 0
@@ -120,26 +121,21 @@ void inserirFixup(struct nodo** T, struct nodo* z){
     struct nodo* y; // y será o tio de z
 
     // A violação principal ocorre se o pai de z também for vermelho.
-    while (z->pai->cor == VERMELHO)
-    {
+    while (z->pai->cor == VERMELHO){
         // Caso A: O pai de z é um FILHO ESQUERDO.
-        if (z->pai == z->pai->pai->fe)
-        {
+        if (z->pai == z->pai->pai->fe){
             y = z->pai->pai->fd; // y é o tio de z
 
             // Caso 1: O tio de z é vermelho.
-            if (y->cor == VERMELHO)
-            {
+            if (y->cor == VERMELHO){
                 z->pai->cor = PRETO;
                 y->cor = PRETO;
                 z->pai->pai->cor = VERMELHO;
                 z = z->pai->pai; // Move z para o avô para continuar a verificação.
             }
-            else 
-            {
+            else {
                 // Caso 2: O tio de z é preto e z é um filho direito.
-                if (z == z->pai->fd)
-                {
+                if (z == z->pai->fd){
                     z = z->pai;
                     rotacaoEsquerda(T, z);
                 }
@@ -151,131 +147,97 @@ void inserirFixup(struct nodo** T, struct nodo* z){
             }
         }
         // Caso B: O pai de z é um FILHO DIREITO (código espelhado do Caso A).
-        else
-        {
-            y = z->pai->pai->fe; // y é o tio de z
+        else{
+            y = z->pai->pai->fe;
 
-            // Caso 1 (espelhado): O tio de z é vermelho.
-            if (y->cor == VERMELHO)
-            {
+            if (y->cor == VERMELHO){
                 z->pai->cor = PRETO;
                 y->cor = PRETO;
                 z->pai->pai->cor = VERMELHO;
                 z = z->pai->pai;
             }
-            else
-            {
-                // Caso 2 (espelhado): O tio de z é preto e z é um filho esquerdo.
-                if (z == z->pai->fe)
-                {
+            else{
+                if (z == z->pai->fe){
                     z = z->pai;
                     rotacaoDireita(T, z);
                 }
 
-                // Caso 3 (espelhado): O tio de z é preto e z é um filho direito.
                 z->pai->cor = PRETO;
                 z->pai->pai->cor = VERMELHO;
                 rotacaoEsquerda(T, z->pai->pai);
             }
         }
     }
-    
-    // Propriedade 2: A raiz da árvore deve ser sempre preta.
-    // O laço pode ter mudado a cor da raiz para vermelho, então garantimos aqui.
+
+    // O laço pode ter mudado a cor da raiz para vermelho.
     (*T)->cor = PRETO;
 }
 
 struct nodo* inserir(struct nodo** T, int chave){
-    // --- Parte 1: Alocação e inicialização do novo nodo (z) ---
-    // Esta parte combina a necessidade de criar o nodo (que não está no
-    // pseudocódigo principal de Cormen) com as propriedades iniciais do nodo.
     struct nodo* z = malloc(sizeof(struct nodo));
-    if (!z)
-    {
-        // Tratamento de erro de memória, conforme especificação do trabalho
+    if (!z){
         fprintf(stderr, "Falha ao alocar memoria.\n");
         exit(1);
     }
     z->chave = chave;
-    z->cor = VERMELHO; // Propriedade: novos nodos são inicialmente vermelhos.
+    z->cor = VERMELHO;
     z->fe = SENTINELA;
     z->fd = SENTINELA;
     z->pai = SENTINELA;
 
+    // y será o pai do novo nodo.
+    struct nodo* y = SENTINELA;
+    // x é usado para percorrer a árvore.
+    struct nodo* x = *T;
 
-    // --- Parte 2: Encontrar a posição de inserção ---
-    // Este laço é idêntico a uma inserção em árvore de busca binária.
-    struct nodo* y = SENTINELA; // y será o pai do novo nodo.
-    struct nodo* x = *T;        // x é usado para percorrer a árvore.
-
-    while (x != SENTINELA)
-    {
-        y = x; // Guarda o pai antes de descer na árvore.
+    while (x != SENTINELA){
+        // Guarda o pai antes de continuar.
+        y = x;
         
         if (z->chave < x->chave)
-        {
             x = x->fe;
-        }
         else if (z->chave > x->chave)
-        {
             x = x->fd;
-        }
-        else
-        {
-            // Ponto de atenção: chave duplicada encontrada, conforme seu trabalho.
-            free(z); // Libera a memória do nodo z que não será inserido.
-            return SENTINELA; // Retorna SENTINELA para indicar falha.
+        else{
+            // Chave duplicada
+            free(z);
+            return SENTINELA;
         }
     }
 
+    z->pai = y;
 
-    // --- Parte 3: Ligar o novo nodo (z) na árvore ---
-    z->pai = y; // O pai de z é o último nodo y visitado.
-
+    // Arvore vazia
     if (y == SENTINELA)
-    {
-        // Caso 1: A árvore estava vazia. z se torna a raiz.
         *T = z;
-    }
+
     else if (z->chave < y->chave)
-    {
-        // Caso 2: z é menor que seu pai, torna-se filho esquerdo.
+
         y->fe = z;
-    }
     else
-    {
-        // Caso 3: z é maior que seu pai, torna-se filho direito.
         y->fd = z;
-    }
     
 
-    // --- Parte 4: Corrigir violações das propriedades rubro-negras ---
     inserirFixup(T, z);
 
-    return z; // Retorna o ponteiro para o novo nodo.
+    return z;
 }
 
 void transplantar(struct nodo** T, struct nodo* u, struct nodo* v){
     if (u->pai == SENTINELA)
-    {
         *T = v;
-    }
     else if (u == u->pai->fe)
-    {
         u->pai->fe = v;
-    }
     else
-    {
         u->pai->fd = v;
-    }
+
     v->pai = u->pai;
 }
 
 struct nodo* minimo(struct nodo* nodo){
     while (nodo->fe != SENTINELA)
-    {
         nodo = nodo->fe;
-    }
+    
     return nodo;
 }
 
@@ -316,9 +278,7 @@ int excluir(struct nodo** T, int chave){
 
     // A correção só é necessária se um nodo PRETO foi removido.
     if (corOriginalY == PRETO)
-    {
         excluirFixup(T, x);
-    }
 
     free(z);
     return 1;
@@ -327,108 +287,83 @@ int excluir(struct nodo** T, int chave){
 void excluirFixup(struct nodo** T, struct nodo* x){
     struct nodo* w; // w é o irmão de x
 
-    while (x != *T && x->cor == PRETO)
-    {
+    while (x != *T && x->cor == PRETO){
         // Caso A: x é um FILHO ESQUERDO
-        if (x == x->pai->fe)
-        {
+        if (x == x->pai->fe){
             w = x->pai->fd;
 
-            // Caso 1: O irmão de x (w) é vermelho.
-            if (w->cor == VERMELHO)
-            {
+            // Caso 1: O irmão de x é vermelho.
+            if (w->cor == VERMELHO){
                 w->cor = PRETO;
                 x->pai->cor = VERMELHO;
                 rotacaoEsquerda(T, x->pai);
                 w = x->pai->fd;
             }
 
-            // Caso 2: O irmão de x (w) é preto, e ambos os filhos de w são pretos.
-            if (w->fe->cor == PRETO && w->fd->cor == PRETO)
-            {
+            // Caso 2: O irmão de x é preto, e ambos os filhos de w são pretos.
+            if (w->fe->cor == PRETO && w->fd->cor == PRETO){
                 w->cor = VERMELHO;
                 x = x->pai;
             }
-            else
-            {
-                // Caso 3: O irmão de x (w) é preto, o filho esquerdo de w é vermelho
-                // e o filho direito de w é preto.
-                if (w->fd->cor == PRETO)
-                {
+            else{
+                // Caso 3: O irmão de x é preto, o filho esquerdo de w é vermelho e o filho direito de w é preto.
+                if (w->fd->cor == PRETO){
                     w->fe->cor = PRETO;
                     w->cor = VERMELHO;
                     rotacaoDireita(T, w);
                     w = x->pai->fd;
                 }
 
-                // Caso 4: O irmão de x (w) é preto, e o filho direito de w é vermelho.
+                // Caso 4: O irmão de x é preto, e o filho direito de w é vermelho.
                 w->cor = x->pai->cor;
                 x->pai->cor = PRETO;
                 w->fd->cor = PRETO;
                 rotacaoEsquerda(T, x->pai);
-                x = *T; // Termina o laço
+                x = *T;
             }
         }
         // Caso B: x é um FILHO DIREITO (código espelhado)
-        else
-        {
+        else{
             w = x->pai->fe;
 
-            // Caso 1 (espelhado)
-            if (w->cor == VERMELHO)
-            {
+            if (w->cor == VERMELHO){
                 w->cor = PRETO;
                 x->pai->cor = VERMELHO;
                 rotacaoDireita(T, x->pai);
                 w = x->pai->fe;
             }
 
-            // Caso 2 (espelhado)
-            if (w->fd->cor == PRETO && w->fe->cor == PRETO)
-            {
+            if (w->fd->cor == PRETO && w->fe->cor == PRETO){
                 w->cor = VERMELHO;
                 x = x->pai;
             }
-            else
-            {
-                // Caso 3 (espelhado)
-                if (w->fe->cor == PRETO)
-                {
+            else{
+                if (w->fe->cor == PRETO){
                     w->fd->cor = PRETO;
                     w->cor = VERMELHO;
                     rotacaoEsquerda(T, w);
                     w = x->pai->fe;
                 }
 
-                // Caso 4 (espelhado)
                 w->cor = x->pai->cor;
                 x->pai->cor = PRETO;
                 w->fe->cor = PRETO;
                 rotacaoDireita(T, x->pai);
-                x = *T; // Termina o laço
+                x = *T;
             }
         }
     }
     x->cor = PRETO;
 }
-// Retorna o nodo encontrado ou o SENTINELA caso contrario
+
 struct nodo* buscar(struct nodo* nodo, int chave){
     struct nodo* atual = nodo;
 
-    // O laço continua enquanto não chegarmos a uma folha (SENTINELA)
-    // e enquanto a chave do nodo atual não for a que procuramos.
-    while (atual != SENTINELA && chave != atual->chave)
-    {
+    while (atual != SENTINELA && chave != atual->chave){
         if (chave < atual->chave)
-        {
-            // A chave procurada é menor, então vamos para a subárvore esquerda.
             atual = atual->fe;
-        }
         else
-        {
-            // A chave procurada é maior, então vamos para a subárvore direita.
             atual = atual->fd;
-        }
     }
 
     return atual;
@@ -442,118 +377,80 @@ void imprimirEmOrdem(struct nodo* nodo){
     }
 }
 
-
-
-
-typedef struct {
-    struct nodo* nodo_rb;
+struct FilaItem{
+    struct nodo *nodo_rb;
     int nivel;
-} ItemFila;
+    TAILQ_ENTRY(FilaItem) pointers;
+};
 
-typedef struct NodoFila {
-    ItemFila item;
-    struct NodoFila* proximo;
-} NodoFila;
-
-typedef struct {
-    NodoFila *inicio;
-    NodoFila *fim;
-} Fila;
-
-Fila* criarFila() {
-    Fila* f = (Fila*)malloc(sizeof(Fila));
-    if (f) f->inicio = f->fim = NULL;
-    return f;
-}
-
-void enfileirar(Fila* f, struct nodo* nodo_rb, int nivel) {
-    NodoFila* novoNodo = (NodoFila*)malloc(sizeof(NodoFila));
-    if (novoNodo) {
-        novoNodo->item.nodo_rb = nodo_rb;
-        novoNodo->item.nivel = nivel;
-        novoNodo->proximo = NULL;
-        if (f->fim) f->fim->proximo = novoNodo;
-        else f->inicio = novoNodo;
-        f->fim = novoNodo;
-    }
-}
-
-ItemFila desenfileirar(Fila* f) {
-    NodoFila* temp = f->inicio;
-    ItemFila item = temp->item;
-    f->inicio = f->inicio->proximo;
-    if (!f->inicio) f->fim = NULL;
-    free(temp);
-    return item;
-}
-
-int filaVazia(Fila* f) {
-    return f->inicio == NULL;
-}
-
-void liberarFila(Fila* f) {
-    while (!filaVazia(f)) desenfileirar(f);
-    free(f);
-}
-
+TAILQ_HEAD(FilaCabecalho, FilaItem);
 
 void imprimirEmLargura(struct nodo* raiz){
-    if (raiz == SENTINELA) {
+    if (raiz == SENTINELA){
         return;
     }
 
-    Fila* fila = criarFila();
-    
-    // Corresponde a "enfileirar(r)" 
-    enfileirar(fila, raiz, 0);
+    struct FilaCabecalho fila;
+    TAILQ_INIT(&fila);
+
+    struct FilaItem* primeiro_item = malloc(sizeof(struct FilaItem));
+    if (!primeiro_item)
+        matarProgramaFaltaMemoria();
+    primeiro_item->nodo_rb = raiz;
+    primeiro_item->nivel = 0;
+    TAILQ_INSERT_TAIL(&fila, primeiro_item, pointers);
 
     int nivelAtual = -1;
+    struct FilaItem* item_atual = NULL;
 
-    // Corresponde a "enquanto fila não vazia" [cite: 3768]
-    while (!filaVazia(fila)) {
-        // Corresponde a "n = removerCabeça()" [cite: 3769]
-        ItemFila itemAtual = desenfileirar(fila);
-        struct nodo* nodo = itemAtual.nodo_rb;
+    while (!TAILQ_EMPTY(&fila)){
+        item_atual = TAILQ_FIRST(&fila);
+        struct nodo* nodo = item_atual->nodo_rb;
 
-        // Adaptação: Verifica se mudamos de nível para imprimir o cabeçalho "[n]"
-        if (itemAtual.nivel != nivelAtual) {
-            if (nivelAtual != -1) printf("\n");
-            nivelAtual = itemAtual.nivel;
+        if (item_atual->nivel != nivelAtual){
+            if (nivelAtual != -1)
+                printf("\n");
+            nivelAtual = item_atual->nivel;
             printf("[%d] ", nivelAtual);
         }
 
-        // Adaptação: Corresponde a "imprimir(n)"[cite: 3770], com a formatação do trabalho
         printf("(%c)%d", (nodo->cor == PRETO ? 'B' : 'R'), nodo->chave);
-        if (nodo->pai != SENTINELA) {
+        if (nodo->pai != SENTINELA){
             printf("[%d%c]\t", nodo->pai->chave, (nodo == nodo->pai->fe ? 'e' : 'd'));
         } else {
             printf("[RAIZ]\t");
         }
 
-        // Corresponde a "enfileirar(n.filhoEsquerdo)" [cite: 3772]
-        if (nodo->fe != SENTINELA) {
-            enfileirar(fila, nodo->fe, nivelAtual + 1);
+        // Enfileira os filhos, se existirem
+        if (nodo->fe != SENTINELA){
+            struct FilaItem* novo_item = malloc(sizeof(struct FilaItem));
+            if (!novo_item)
+                matarProgramaFaltaMemoria();
+            novo_item->nodo_rb = nodo->fe;
+            novo_item->nivel = nivelAtual + 1;
+            TAILQ_INSERT_TAIL(&fila, novo_item, pointers);
         }
-        // Corresponde a "enfileirar(n.filhoDireito)" [cite: 3774]
-        if (nodo->fd != SENTINELA) {
-            enfileirar(fila, nodo->fd, nivelAtual + 1);
+        if (nodo->fd != SENTINELA){
+            struct FilaItem* novo_item = malloc(sizeof(struct FilaItem));
+            if (!novo_item)
+                matarProgramaFaltaMemoria();
+            novo_item->nodo_rb = nodo->fd;
+            novo_item->nivel = nivelAtual + 1;
+            TAILQ_INSERT_TAIL(&fila, novo_item, pointers);
         }
+        
+        // Remove o item que acabamos de processar e libera sua memória.
+        TAILQ_REMOVE(&fila, item_atual, pointers);
+        free(item_atual);
     }
 
     printf("\n");
-    liberarFila(fila); // Limpa a memória usada pela fila
 }
 
-void liberarArvore(struct nodo* nodo)
-{
-    // A condição de parada é quando chegamos em uma folha.
-    if (nodo != SENTINELA)
-    {
-        // Libera primeiro a subárvore esquerda.
+void liberarArvore(struct nodo* nodo){
+    if (nodo != SENTINELA){
         liberarArvore(nodo->fe);
-        // Depois, libera a subárvore direita.
         liberarArvore(nodo->fd);
-        // Por último, libera o próprio nodo.
         free(nodo);
     }
 }
