@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "kdtree.h"
+
+struct Vizinho{
+    struct Nodo *nodo;
+    float dist;
+};
 
 void* malloc_seguro(size_t tamanho) {
     void *ptr = malloc(tamanho);
@@ -11,14 +17,14 @@ void* malloc_seguro(size_t tamanho) {
     return ptr;
 }
 
-int pontos_iguais(Ponto* p, float* alvo, int k) {
+int pontos_iguais(struct Ponto* p, float* alvo, int k) {
     for (int i = 0; i < k; i++) 
         if (p->coords[i] != alvo[i]) return 0;
     return 1;
 }
 
 typedef struct NoFila {
-    Nodo* info;
+    struct Nodo* info;
     struct NoFila* prox;
 } NoFila;
 
@@ -34,7 +40,7 @@ Fila* cria_fila() {
     return f;
 }
 
-void enfileira(Fila* f, Nodo* n) {
+void enfileira(Fila* f, struct Nodo* n) {
     if (n == NULL) return;
     NoFila* novo = (NoFila*) malloc_seguro(sizeof(NoFila));
     novo->info = n;
@@ -48,11 +54,11 @@ void enfileira(Fila* f, Nodo* n) {
     f->fim = novo;
 }
 
-Nodo* desenfileira(Fila* f) {
+struct Nodo* desenfileira(Fila* f) {
     if (f->inicio == NULL) return NULL;
     
     NoFila* temp = f->inicio;
-    Nodo* ret = temp->info;
+    struct Nodo* ret = temp->info;
     
     f->inicio = f->inicio->prox;
     if (f->inicio == NULL) 
@@ -66,9 +72,9 @@ int fila_vazia(Fila* f) {
     return (f->inicio == NULL);
 }
 
-Nodo* insere_nodo(Nodo* raiz, Ponto* novo_ponto, int k) {
+struct Nodo* insere_nodo(struct Nodo* raiz, struct Ponto* novo_ponto, int k) {
     // 1. Alocamos o nodo AGORA. Ele sempre será inserido em algum lugar.
-    Nodo* novo = (Nodo*) malloc_seguro(sizeof(Nodo));
+    struct Nodo* novo = (struct Nodo*) malloc_seguro(sizeof(struct Nodo));
     novo->ponto = novo_ponto;
     novo->esq = NULL;
     novo->dir = NULL;
@@ -79,8 +85,8 @@ Nodo* insere_nodo(Nodo* raiz, Ponto* novo_ponto, int k) {
     }
 
     int coord = 0;
-    Nodo* atual = raiz;
-    Nodo* pai = NULL;
+    struct Nodo* atual = raiz;
+    struct Nodo* pai = NULL;
 
     // Navegação iterativa até a folha (Slide 7)
     while (atual != NULL) {
@@ -109,17 +115,17 @@ Nodo* insere_nodo(Nodo* raiz, Ponto* novo_ponto, int k) {
 /* Nota: Esta função está aqui mas o main faz a leitura principal.
    Se o main já lê, esta função pode ser redundante ou usada apenas para testes isolados.
    Vou corrigir o scanf mesmo assim. */
-Nodo* cria_arvore_entrada() {
+struct Nodo* cria_arvore_entrada() {
     int n, k;
     
     // CORREÇÃO: Adicionado & comercial
     if (scanf("%d %d", &n, &k) != 2)
         return NULL; 
 
-    Nodo* raiz = NULL;
+    struct Nodo* raiz = NULL;
 
     for (int i = 0; i < n; i++) {
-        Ponto* p = (Ponto*) malloc_seguro(sizeof(Ponto));
+        struct Ponto* p = (struct Ponto*) malloc_seguro(sizeof(struct Ponto));
         p->coords = (float*) malloc_seguro(k * sizeof(float));
 
         for (int j = 0; j < k; j++)
@@ -134,7 +140,7 @@ Nodo* cria_arvore_entrada() {
     return raiz;
 }
 
-Nodo* busca_nodo(Nodo* r, float* vetchave, int coord, int k) {
+struct Nodo* busca_nodo(struct Nodo* r, float* vetchave, int coord, int k) {
     if (r == NULL || pontos_iguais(r->ponto, vetchave, k)) 
         return r;
 
@@ -145,14 +151,14 @@ Nodo* busca_nodo(Nodo* r, float* vetchave, int coord, int k) {
 }
 
 
-void imprime_largura(Nodo* raiz, int k) {
+void imprime_largura(struct Nodo* raiz, int k) {
     if (raiz == NULL) return;
 
     Fila* f = cria_fila();
     enfileira(f, raiz);
 
     while (!fila_vazia(f)) {
-        Nodo* atual = desenfileira(f);
+        struct Nodo* atual = desenfileira(f);
 
         // Imprime as coordenadas do ponto
         for (int i = 0; i < k; i++)
@@ -168,7 +174,7 @@ void imprime_largura(Nodo* raiz, int k) {
     free(f);
 }
 
-void libera_arvore(Nodo* raiz) {
+void libera_arvore(struct Nodo* raiz) {
     if (raiz == NULL) return;
     libera_arvore(raiz->esq);
     libera_arvore(raiz->dir);
