@@ -23,26 +23,26 @@ int pontos_iguais(struct Ponto* p, float* alvo, int k) {
     return 1;
 }
 
-typedef struct NoFila {
+struct NoFila {
     struct Nodo* info;
     struct NoFila* prox;
-} NoFila;
+};
 
-typedef struct {
-    NoFila* inicio;
-    NoFila* fim;
-} Fila;
+struct Fila {
+    struct NoFila* inicio;
+    struct NoFila* fim;
+};
 
-Fila* cria_fila() {
-    Fila* f = (Fila*) malloc_seguro(sizeof(Fila));
+struct Fila* cria_fila() {
+    struct Fila* f = (struct Fila*) malloc_seguro(sizeof(struct Fila));
     f->inicio = NULL;
     f->fim = NULL;
     return f;
 }
 
-void enfileira(Fila* f, struct Nodo* n) {
+void enfileira(struct Fila* f, struct Nodo* n) {
     if (n == NULL) return;
-    NoFila* novo = (NoFila*) malloc_seguro(sizeof(NoFila));
+    struct NoFila* novo = (struct NoFila*) malloc_seguro(sizeof(struct NoFila));
     novo->info = n;
     novo->prox = NULL;
     
@@ -54,10 +54,10 @@ void enfileira(Fila* f, struct Nodo* n) {
     f->fim = novo;
 }
 
-struct Nodo* desenfileira(Fila* f) {
+struct Nodo* desenfileira(struct Fila* f) {
     if (f->inicio == NULL) return NULL;
     
-    NoFila* temp = f->inicio;
+    struct NoFila* temp = f->inicio;
     struct Nodo* ret = temp->info;
     
     f->inicio = f->inicio->prox;
@@ -68,12 +68,11 @@ struct Nodo* desenfileira(Fila* f) {
     return ret;
 }
 
-int fila_vazia(Fila* f) {
+int fila_vazia(struct Fila* f) {
     return (f->inicio == NULL);
 }
 
 struct Nodo* insere_nodo(struct Nodo* raiz, struct Ponto* novo_ponto, int k) {
-    // 1. Alocamos o nodo AGORA. Ele sempre será inserido em algum lugar.
     struct Nodo* novo = (struct Nodo*) malloc_seguro(sizeof(struct Nodo));
     novo->ponto = novo_ponto;
     novo->esq = NULL;
@@ -112,13 +111,9 @@ struct Nodo* insere_nodo(struct Nodo* raiz, struct Ponto* novo_ponto, int k) {
     return raiz;
 }
 
-/* Nota: Esta função está aqui mas o main faz a leitura principal.
-   Se o main já lê, esta função pode ser redundante ou usada apenas para testes isolados.
-   Vou corrigir o scanf mesmo assim. */
 struct Nodo* cria_arvore_entrada() {
     int n, k;
     
-    // CORREÇÃO: Adicionado & comercial
     if (scanf("%d %d", &n, &k) != 2)
         return NULL; 
 
@@ -133,7 +128,6 @@ struct Nodo* cria_arvore_entrada() {
 
         scanf("%d", &p->classe);
 
-        // CORREÇÃO: Chamada com 3 argumentos
         raiz = insere_nodo(raiz, p, k);
     }
     
@@ -154,7 +148,7 @@ struct Nodo* busca_nodo(struct Nodo* r, float* vetchave, int coord, int k) {
 void imprime_largura(struct Nodo* raiz, int k) {
     if (raiz == NULL) return;
 
-    Fila* f = cria_fila();
+    struct Fila* f = cria_fila();
     enfileira(f, raiz);
 
     while (!fila_vazia(f)) {
@@ -172,6 +166,127 @@ void imprime_largura(struct Nodo* raiz, int k) {
     }
 
     free(f);
+}
+
+float calcula_distancia(struct Ponto *p, float *alvo, int k){
+    float soma = 0.0;
+    float diff;
+
+    for (int i = 0; i < k; i++) {
+        diff = p->coords[i] - alvo[i];
+        soma += (diff * diff);
+    }
+    
+    return sqrt(soma);
+}
+
+void atualiza_lista_vizinhos(struct Vizinho* lista, int z, struct Nodo* no, float d) {
+    int i;
+    // Acha a posição de inserção
+    for (i = z - 1; i >= 0; i--) {
+        if (lista[i].nodo == NULL || d < lista[i].dist)
+            continue;
+
+        break; // Achamos a posição, vamos inserir em i+1
+    }
+    
+    int pos_insercao = i + 1;
+
+    // Se a posição é >= z, o novo ponto é pior que todos os z,
+    // então não precisamos adicioná-lo.
+    if (pos_insercao >= z) return;
+
+    // Desloca os piores para a direita
+    for (int j = z - 1; j > pos_insercao; j--) {
+        lista[j] = lista[j - 1];
+    }
+
+    // Insere o novo vizinho na posição correta
+    lista[pos_insercao].nodo = no;
+    lista[pos_insercao].dist = d;
+}
+
+/* * Função recursiva (a "mágica") que navega a árvore.
+ * Adaptação do "vizinhoMaisProx" [cite: 1314] para Z vizinhos.
+ */
+void z_vizinhos_recursivo(struct Nodo* r, float* alvo, struct Vizinho* lista, int z, int k, int coord) {
+    // Caso base: Se o nodo é nulo, não fazemos nada.
+    if (r == NULL) return;
+
+    // 1. Calcula a distância do nó atual e tenta adicionar na lista
+    float dist_atual = calcula_distancia(r->ponto, alvo, k);
+    atualiza_lista_vizinhos(lista, z, r, dist_atual);
+
+    // 2. Decide qual sub-árvore visitar primeiro ("prim" e "sec")
+    // [cite: 1319-1324]
+    struct Nodo *prim, *sec;
+    if (alvo[coord] < r->ponto->coords[coord]) {
+        prim = r->esq; // [cite: 1320]
+        sec = r->dir;  // [cite: 1321]
+    } else {
+        prim = r->dir; // [cite: 1323]
+        sec = r->esq;  // [cite: 1324]
+    }
+
+    // 3. Chama recursivamente para a sub-árvore "boa" (prim)
+    // [cite: 1326]
+    z_vizinhos_recursivo(prim, alvo, lista, z, k, (coord + 1) % k);
+
+    // 4. Lógica da PODA (Pruning) - A parte mais importante
+    // [cite: 1331-1332]
+    // A "melhor.dist" do pseudocódigo agora é a distância do
+    // PIOR vizinho na nossa lista (o último, lista[z-1]).
+    
+    // Distância do ponto alvo até o "plano de corte" (hiperplano)
+    float dist_plano = fabs(alvo[coord] - r->ponto->coords[coord]);
+    
+    // O pior vizinho que achamos até agora
+    struct Vizinho pior_vizinho = lista[z - 1];
+
+    // Se a lista não está cheia (pior_vizinho.nodo == NULL) OU
+    // se a distância até o plano de corte é MENOR que a distância
+    // do nosso pior vizinho...
+    // ... então vale a pena olhar a sub-árvore "ruim" (sec).
+    if (pior_vizinho.nodo == NULL || dist_plano < pior_vizinho.dist) {
+        // [cite: 1333]
+        z_vizinhos_recursivo(sec, alvo, lista, z, k, (coord + 1) % k);
+    }
+}
+
+/* Função "casca" que o main.c chama */
+void z_vizinhos(struct Nodo* raiz, float* alvo, int z, int k) {
+    // 1. Cria a lista de vizinhos
+    struct Vizinho* lista = (struct Vizinho*) malloc_seguro(z * sizeof(struct Vizinho));
+    
+    // 2. Inicializa a lista (importante!)
+    // O nodo NULL indica que a posição está vazia.
+    for (int i = 0; i < z; i++) {
+        lista[i].nodo = NULL;
+        lista[i].dist = 0.0; // Não importa, mas é bom limpar
+    }
+
+    // 3. Chama a função recursiva (começa na raiz, coord 0)
+    z_vizinhos_recursivo(raiz, alvo, lista, z, k, 0);
+
+    // 4. Imprime os resultados conforme o PDF
+    // O PDF pede: "4.9, 2.4, 3.3, 1.0 (classe 1), dist=0.1414" [cite: 67]
+    for (int i = 0; i < z; i++) {
+        if (lista[i].nodo == NULL) continue; // Posição vazia
+
+        struct Ponto* p = lista[i].nodo->ponto;
+        
+        // Imprime as K coordenadas
+        for (int j = 0; j < k; j++) {
+            printf("%.1f", p->coords[j]);
+            if (j < k - 1) printf(", "); // Vírgula entre coordenadas
+        }
+        
+        // Imprime classe e distância
+        printf(" (classe %d), dist=%.4f\n", p->classe, lista[i].dist);
+    }
+
+    // Libera a lista
+    free(lista);
 }
 
 void libera_arvore(struct Nodo* raiz) {

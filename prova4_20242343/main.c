@@ -12,12 +12,13 @@ int main() {
 
     printf("Insira os pontos.\n");
 
-    Nodo* raiz = NULL;
+    struct Nodo* raiz = NULL; // MUDANÇA
 
     // Loop de leitura dos N pontos 
     for (int i = 0; i < n; i++) {
-        Ponto* p = (Ponto*) malloc_safe(sizeof(Ponto));
-        p->coords = (float*) malloc_safe(k * sizeof(float));
+        // MUDANÇAS (struct Ponto e malloc_seguro)
+        struct Ponto* p = (struct Ponto*) malloc_seguro(sizeof(struct Ponto));
+        p->coords = (float*) malloc_seguro(k * sizeof(float));
 
         // Lê as K coordenadas
         for (int j = 0; j < k; j++) 
@@ -35,12 +36,14 @@ int main() {
     
     while (scanf(" %c", &comando) != EOF && comando != 'f') {
         if (comando == 'b') {
-            float* alvo = (float*) malloc_safe(k * sizeof(float));
+            // MUDANÇA (malloc_seguro)
+            float* alvo = (float*) malloc_seguro(k * sizeof(float));
             
             for (int i = 0; i < k; i++) 
                 scanf("%f", &alvo[i]);
 
-            Nodo* resultado = busca_nodo(raiz, alvo, 0, k);
+            // MUDANÇA (struct Nodo)
+            struct Nodo* resultado = busca_nodo(raiz, alvo, 0, k);
 
             if (resultado != NULL)
                 printf("Encontrado. Classe %d.\n", resultado->ponto->classe);
@@ -51,7 +54,6 @@ int main() {
         }
         
         else if (comando == 'l') {
-            // Ainda vamos implementar esta função no kdtree.c
             imprime_largura(raiz, k); 
         }
 
@@ -59,11 +61,12 @@ int main() {
             int z_qtd;
             scanf("%d", &z_qtd);
 
-            float* alvo = (float*) malloc_safe(k * sizeof(float));
+            // MUDANÇA (malloc_seguro)
+            float* alvo = (float*) malloc_seguro(k * sizeof(float));
             for (int i = 0; i < k; i++) 
                 scanf("%f", &alvo[i]);
 
-            printf("Vizinhos mais próximos:\n"); // 
+            printf("Vizinhos mais próximos:\n");
             
             z_vizinhos(raiz, alvo, z_qtd, k);
             
