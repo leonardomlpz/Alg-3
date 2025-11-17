@@ -206,38 +206,26 @@ void atualiza_lista_vizinhos(struct Vizinho* lista, int z, struct Nodo* no, floa
     lista[pos_insercao].dist = d;
 }
 
-/* * Função recursiva (a "mágica") que navega a árvore.
- * Adaptação do "vizinhoMaisProx" [cite: 1314] para Z vizinhos.
- */
 void z_vizinhos_recursivo(struct Nodo* r, float* alvo, struct Vizinho* lista, int z, int k, int coord) {
-    // Caso base: Se o nodo é nulo, não fazemos nada.
     if (r == NULL) return;
 
-    // 1. Calcula a distância do nó atual e tenta adicionar na lista
+    // Calcula a distância do nó atual e tenta adicionar na lista
     float dist_atual = calcula_distancia(r->ponto, alvo, k);
     atualiza_lista_vizinhos(lista, z, r, dist_atual);
 
-    // 2. Decide qual sub-árvore visitar primeiro ("prim" e "sec")
-    // [cite: 1319-1324]
     struct Nodo *prim, *sec;
     if (alvo[coord] < r->ponto->coords[coord]) {
-        prim = r->esq; // [cite: 1320]
-        sec = r->dir;  // [cite: 1321]
+        prim = r->esq;
+        sec = r->dir; 
     } else {
-        prim = r->dir; // [cite: 1323]
-        sec = r->esq;  // [cite: 1324]
+        prim = r->dir;
+        sec = r->esq;
     }
 
-    // 3. Chama recursivamente para a sub-árvore "boa" (prim)
-    // [cite: 1326]
+    // Chama recursivamente para a sub-árvore "boa" (prim)
     z_vizinhos_recursivo(prim, alvo, lista, z, k, (coord + 1) % k);
-
-    // 4. Lógica da PODA (Pruning) - A parte mais importante
-    // [cite: 1331-1332]
-    // A "melhor.dist" do pseudocódigo agora é a distância do
-    // PIOR vizinho na nossa lista (o último, lista[z-1]).
     
-    // Distância do ponto alvo até o "plano de corte" (hiperplano)
+    // Distância do ponto alvo até o "plano de corte"
     float dist_plano = fabs(alvo[coord] - r->ponto->coords[coord]);
     
     // O pior vizinho que achamos até agora
@@ -248,40 +236,36 @@ void z_vizinhos_recursivo(struct Nodo* r, float* alvo, struct Vizinho* lista, in
     // do nosso pior vizinho...
     // ... então vale a pena olhar a sub-árvore "ruim" (sec).
     if (pior_vizinho.nodo == NULL || dist_plano < pior_vizinho.dist) {
-        // [cite: 1333]
+       
         z_vizinhos_recursivo(sec, alvo, lista, z, k, (coord + 1) % k);
     }
 }
 
-/* Função "casca" que o main.c chama */
 void z_vizinhos(struct Nodo* raiz, float* alvo, int z, int k) {
-    // 1. Cria a lista de vizinhos
+    // Cria a lista de vizinhos
     struct Vizinho* lista = (struct Vizinho*) malloc_seguro(z * sizeof(struct Vizinho));
     
-    // 2. Inicializa a lista (importante!)
-    // O nodo NULL indica que a posição está vazia.
+    // Inicializa a lista
     for (int i = 0; i < z; i++) {
         lista[i].nodo = NULL;
-        lista[i].dist = 0.0; // Não importa, mas é bom limpar
+        lista[i].dist = 0.0;
     }
 
-    // 3. Chama a função recursiva (começa na raiz, coord 0)
+    // Chama a função recursiva
     z_vizinhos_recursivo(raiz, alvo, lista, z, k, 0);
 
-    // 4. Imprime os resultados conforme o PDF
-    // O PDF pede: "4.9, 2.4, 3.3, 1.0 (classe 1), dist=0.1414" [cite: 67]
+    // Imprime os resultados
     for (int i = 0; i < z; i++) {
-        if (lista[i].nodo == NULL) continue; // Posição vazia
+        if (lista[i].nodo == NULL) continue;
 
         struct Ponto* p = lista[i].nodo->ponto;
         
         // Imprime as K coordenadas
         for (int j = 0; j < k; j++) {
             printf("%.1f", p->coords[j]);
-            if (j < k - 1) printf(", "); // Vírgula entre coordenadas
+            if (j < k - 1) printf(", ");
         }
         
-        // Imprime classe e distância
         printf(" (classe %d), dist=%.4f\n", p->classe, lista[i].dist);
     }
 
