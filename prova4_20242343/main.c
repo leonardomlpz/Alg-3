@@ -36,7 +36,6 @@ int main() {
     
     while (scanf(" %c", &comando) != EOF && comando != 'f') {
         if (comando == 'b') {
-            // MUDANÇA (malloc_seguro)
             float* alvo = (float*) malloc_seguro(k * sizeof(float));
             
             for (int i = 0; i < k; i++) 
@@ -61,7 +60,6 @@ int main() {
             int z_qtd;
             scanf("%d", &z_qtd);
 
-            // MUDANÇA (malloc_seguro)
             float* alvo = (float*) malloc_seguro(k * sizeof(float));
             for (int i = 0; i < k; i++) 
                 scanf("%f", &alvo[i]);
