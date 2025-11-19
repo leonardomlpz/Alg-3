@@ -12,11 +12,10 @@ int main() {
 
     printf("Insira os pontos.\n");
 
-    struct Nodo* raiz = NULL; // MUDANÇA
+    struct Nodo* raiz = NULL;
 
     // Loop de leitura dos N pontos 
     for (int i = 0; i < n; i++) {
-        // MUDANÇAS (struct Ponto e malloc_seguro)
         struct Ponto* p = (struct Ponto*) malloc_seguro(sizeof(struct Ponto));
         p->coords = (float*) malloc_seguro(k * sizeof(float));
 
@@ -24,7 +23,6 @@ int main() {
         for (int j = 0; j < k; j++) 
             scanf("%f", &p->coords[j]);
         
-        // Lê a classe (inteiro no final da linha) 
         scanf("%d", &p->classe);
 
         raiz = insere_nodo(raiz, p, k);
@@ -41,7 +39,6 @@ int main() {
             for (int i = 0; i < k; i++) 
                 scanf("%f", &alvo[i]);
 
-            // MUDANÇA (struct Nodo)
             struct Nodo* resultado = busca_nodo(raiz, alvo, 0, k);
 
             if (resultado != NULL)
